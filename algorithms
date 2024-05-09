@@ -1,0 +1,207 @@
+import time
+import random
+
+def generate_random_list(size, upper_bound):
+    return [random.randint(0, upper_bound) for _ in range(size)]
+
+def measure_runtime(func, arr):
+    start_time = time.time()
+    func(arr.copy())
+    return time.time() - start_time
+
+def print_runtime(func, arr):
+    runtime = measure_runtime(func, arr)
+    print(f"Runtime of {func.__name__}: {runtime:.6f} seconds")
+
+def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        swapped = False
+        for j in range(0, n-i-1):
+            if arr[j] > arr[j+1]:
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+                swapped = True
+        if not swapped:
+            break
+
+def selection_sort(arr):
+    for i in range(len(arr)):
+        min_idx = i
+        for j in range(i+1, len(arr)):
+            if arr[min_idx] > arr[j]:
+                min_idx = j
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]
+
+def insertion_sort(arr):
+    for i in range(1, len(arr)):
+        key = arr[i]
+        j = i - 1
+        while j >=0 and key < arr[j]:
+            arr[j + 1] = arr[j]
+            j -= 1
+        arr[j + 1] = key
+
+def shell_sort(arr):
+    n = len(arr)
+    gap = n // 2
+    while gap > 0:
+        for i in range(gap, n):
+            temp = arr[i]
+            j = i
+            while j >= gap and arr[j - gap] > temp:
+                arr[j] = arr[j - gap]
+                j -= gap
+            arr[j] = temp
+        gap //= 2
+
+def merge_sort(arr):
+    if len(arr) > 1:
+        mid = len(arr) // 2
+        L = arr[:mid]
+        R = arr[mid:]
+
+        merge_sort(L)
+        merge_sort(R)
+
+        i = j = k = 0
+
+        while i < len(L) and j < len(R):
+            if L[i] < R[j]:
+                arr[k] = L[i]
+                i += 1
+            else:
+                arr[k] = R[j]
+                j += 1
+            k += 1
+
+        while i < len(L):
+            arr[k] = L[i]
+            i += 1
+            k += 1
+
+        while j < len(R):
+            arr[k] = R[j]
+            j += 1
+            k += 1
+
+def quick_sort(arr):
+    def _quick_sort(items, low, high):
+        if low < high:
+            split_index = partition(items, low, high)
+            _quick_sort(items, low, split_index)
+            _quick_sort(items, split_index + 1, high)
+
+    def partition(items, low, high):
+        pivot = items[(low + high) // 2]
+        i = low - 1
+        j = high + 1
+        while True:
+            while True:
+                i += 1
+                if items[i] >= pivot:
+                    break
+            while True:
+                j -= 1
+                if items[j] <= pivot:
+                    break
+            if i >= j:
+                return j
+            items[i], items[j] = items[j], items[i]
+
+    _quick_sort(arr, 0, len(arr) - 1)
+
+def heap_sort(arr):
+    def heapify(n, i):
+        largest = i
+        l = 2 * i + 1
+        r = 2 * i + 2
+
+        if l < n and arr[i] < arr[l]:
+            largest = l
+
+        if r < n and arr[largest] < arr[r]:
+            largest = r
+
+        if largest != i:
+            arr[i], arr[largest] = arr[largest], arr[i]
+            heapify(n, largest)
+
+    n = len(arr)
+
+    for i in range(n // 2 - 1, -1, -1):
+        heapify(n, i)
+
+    for i in range(n-1, 0, -1):
+        arr[i], arr[0] = arr[0], arr[i]
+        heapify(i, 0)
+
+def counting_sort(arr):
+    max_val = max(arr)
+    m = max_val + 1
+    count = [0] * m
+                
+    for a in arr:
+        count[a] += 1
+    i = 0
+    for a in range(m):
+        for c in range(count[a]):
+            arr[i] = a
+            i += 1
+    return arr
+
+def radix_sort(arr):
+    RADIX = 10
+    placement = 1
+    max_digit = max(arr)
+
+    while placement <= max_digit:
+        buckets = [list() for _ in range(RADIX)]
+        for i in arr:
+            tmp = int((i / placement) % RADIX)
+            buckets[tmp].append(i)
+        a = 0
+        for b in range(RADIX):
+            buck = buckets[b]
+            for i in buck:
+                arr[a] = i
+                a += 1
+        placement *= RADIX
+
+def bucket_sort(arr):
+    max_elem = max(arr)
+    bucket_count = len(arr) // 10 or 10  # Determines the number of buckets based on array size or uses 10
+    buckets = [[] for _ in range(bucket_count)]
+
+    for number in arr:
+        index = min(number * bucket_count // (max_elem + 1), bucket_count - 1)
+        buckets[index].append(number)
+
+    k = 0
+    for bucket in buckets:
+        for number in sorted(bucket):
+            arr[k] = number
+            k += 1
+
+def timsort(arr):
+    arr.sort()
+
+# Running the experiments
+def run_experiments():
+    sizes = [100, 1000, 10000, 100000, 1000000]  # Different sizes of arrays to sort
+    for size in sizes:
+        arr = generate_random_list(size, size)
+        print(f"\nArray size: {size}")
+        print_runtime(bubble_sort, arr)
+        print_runtime(selection_sort, arr)
+        print_runtime(insertion_sort, arr)
+        print_runtime(shell_sort, arr)
+        print_runtime(merge_sort, arr)
+        print_runtime(quick_sort, arr)
+        print_runtime(heap_sort, arr)
+        print_runtime(counting_sort, arr)
+        print_runtime(radix_sort, arr)
+        print_runtime(bucket_sort, arr)
+        print_runtime(timsort, arr)
+
+if __name__ == "__main__":
+    run_experiments()
