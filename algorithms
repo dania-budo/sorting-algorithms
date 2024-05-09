@@ -10,50 +10,38 @@ logging.basicConfig(filename='sorting_performance.log', level=logging.INFO, form
 # Seed for reproducibility
 random.seed(42)
 
+# Generate different types of lists
 def generate_random_list(size, upper_bound=None):
-    """Generate a list of random integers."""
     if upper_bound is None:
         upper_bound = size
-    if size <= 0:
-        raise ValueError("Size should be greater than 0")
     return [random.randint(0, upper_bound) for _ in range(size)]
 
-def generate_reverse_sorted_list(size, upper_bound=None):
-    """Generate a reverse sorted list."""
+def generate_reverse_sorted_list(size):
     arr = generate_random_list(size, size)
     return sorted(arr, reverse=True)
 
-def generate_nearly_sorted_list(size, upper_bound=None):
-    """Generate a nearly sorted list."""
+def generate_nearly_sorted_list(size):
     arr = sorted(generate_random_list(size, size))
-    swap_count = max(1, size // 100) 
+    swap_count = max(1, size // 100)
     for _ in range(swap_count):
         i, j = random.randint(0, size - 1), random.randint(0, size - 1)
         arr[i], arr[j] = arr[j], arr[i]
     return arr
 
-def generate_high_duplicate_list(size, upper_bound=None):
-    """Generate a list with high frequencies of duplicate elements."""
-    if upper_bound is None:
-        upper_bound = size // 10
+def generate_high_duplicate_list(size):
+    upper_bound = size // 10
     return [random.randint(0, upper_bound) for _ in range(size)]
 
-def run_sorting_in_thread(func, arr):
-    """Run a sorting function in a separate thread."""
-    def target():
-        func(arr)
-    thread = threading.Thread(target=target)
-    thread.start()
-    return thread
-
+# Measure runtime
 def measure_runtime(func, arr):
-    """Measure the runtime of a sorting function with threading."""
     start_time = time.perf_counter()
-    thread = run_sorting_in_thread(func, arr)
-    thread.join(timeout=300)  # Timeout after 300 seconds (5 minutes)
+    thread = threading.Thread(target=func, args=(arr,))
+    thread.start()
+    thread.join(timeout=300)
     if thread.is_alive():
-        thread._stop()  # Force stop the thread if still alive
-        return float('inf')  # Return infinity if timed out
+        logging.warning(f"Timeout: {func.__name__} took longer than 300 seconds.")
+        print(f"{func.__name__} timed out.")
+        return float('inf')
     else:
         elapsed_time = (time.perf_counter() - start_time) * 1000
         return elapsed_time
